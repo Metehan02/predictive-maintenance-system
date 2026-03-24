@@ -10,7 +10,13 @@ st.set_page_config(page_title="Predictive Maintenance System", page_icon="🚗",
 st.title("🚗 Predictive Maintenance System")
 st.markdown("Predict machine failure risk and get maintenance recommendations.")
 
-model = load_model()
+model_choice = st.selectbox(
+    "Choose Model",
+    ["random_forest", "xgboost"]
+)
+
+model = load_model(model_choice)
+
 feature_names = [
     "Type",
     "Air temperature [K]",
@@ -21,10 +27,13 @@ feature_names = [
     "temp_diff"
 ]
 
-feature_importances = pd.Series(
-    model.feature_importances_,
-    index=feature_names
-).sort_values(ascending=False)
+feature_importances = None
+
+if model_choice == "random_forest":
+    feature_importances = pd.Series(
+        model.feature_importances_,
+        index=feature_names
+    ).sort_values(ascending=False)
 
 with st.container():
     st.subheader("Machine Parameters")
@@ -80,8 +89,14 @@ if st.button("Predict", use_container_width=True):
 st.markdown("---")
 st.subheader("Feature Importance")
 
-fig, ax = plt.subplots()
-feature_importances.plot(kind="bar", ax=ax)
-ax.set_title("Most Important Features")
-ax.set_ylabel("Importance Score")
-st.pyplot(fig)
+st.markdown("---")
+st.subheader("Feature Importance")
+
+if feature_importances is not None:
+    fig, ax = plt.subplots()
+    feature_importances.plot(kind="bar", ax=ax)
+    ax.set_title("Most Important Features")
+    ax.set_ylabel("Importance Score")
+    st.pyplot(fig)
+else:
+    st.info("Feature importance chart is currently shown for the Random Forest model.")
